@@ -26,6 +26,7 @@ async fn health_check_works() {
     assert_eq!(Some(0), response.content_length());
 }
 // Launch our application in the background ~somehow~
+// More examples here: https://github.com/tokio-rs/axum/blob/main/examples/testing/src/main.rs
 fn spawn_app() {
     let listener = TcpListener::bind("127.0.0.1:8000".parse::<SocketAddr>().unwrap()).unwrap();
 
