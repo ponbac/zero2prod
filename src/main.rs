@@ -1,6 +1,12 @@
-use zero2prod::run;
+use std::net::SocketAddr;
+
+use zero2prod::app;
 
 #[tokio::main]
 async fn main() {
-    run().await
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
+    axum::Server::bind(&addr)
+        .serve(app().into_make_service())
+        .await
+        .unwrap();
 }

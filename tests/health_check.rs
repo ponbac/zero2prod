@@ -1,4 +1,8 @@
 //! tests/health_check.rs
+
+use std::net::{SocketAddr, TcpListener};
+
+use zero2prod::app;
 // `tokio::test` is the testing equivalent of `tokio::main`.
 // It also spares you from having to specify the `#[test]` attribute.
 //
@@ -7,7 +11,7 @@
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
-    spawn_app().await.expect("Failed to spawn our app.");
+    spawn_app();
     // We need to bring in `reqwest`
     // to perform HTTP requests against our application.
     let client = reqwest::Client::new();
@@ -22,6 +26,14 @@ async fn health_check_works() {
     assert_eq!(Some(0), response.content_length());
 }
 // Launch our application in the background ~somehow~
-async fn spawn_app() -> Result<(), std::io::Error> {
-    todo!()
+fn spawn_app() {
+    let listener = TcpListener::bind("127.0.0.1:8000".parse::<SocketAddr>().unwrap()).unwrap();
+
+    tokio::spawn(async move {
+        axum::Server::from_tcp(listener)
+            .unwrap()
+            .serve(app().into_make_service())
+            .await
+            .unwrap();
+    });
 }
