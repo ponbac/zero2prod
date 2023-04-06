@@ -11,7 +11,8 @@ use zero2prod::app;
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let listener = TcpListener::bind("127.0.0.1:0".parse::<SocketAddr>().unwrap()).unwrap();
+    let listener = TcpListener::bind("127.0.0.1:0".parse::<SocketAddr>().unwrap())
+        .expect("Failed to bind random port");
     let addr = listener.local_addr().unwrap();
     spawn_app(listener);
     // We need to bring in `reqwest`
