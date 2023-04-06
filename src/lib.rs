@@ -31,24 +31,9 @@ struct FormData {
     email: String,
 }
 
-async fn subscribe(Form(form_data): Form<FormData>) -> StatusCode {
-    match (form_data.name.is_empty(), form_data.email.is_empty()) {
-        (true, true) => return StatusCode::BAD_REQUEST,
-        (true, false) => {
-            println!("Missing name");
-            return StatusCode::BAD_REQUEST;
-        }
-        (false, true) => {
-            println!("Missing email");
-            return StatusCode::BAD_REQUEST;
-        }
-        (false, false) => (),
-    }
-
-    print!(
+async fn subscribe(Form(form_data): Form<FormData>) -> String {
+    format!(
         "Welcome, {}! We saved your email: {}",
         form_data.name, form_data.email
-    );
-
-    StatusCode::OK
+    )
 }
