@@ -1,6 +1,6 @@
 use std::net::{SocketAddr, TcpListener};
 
-use zero2prod::app;
+use zero2prod::startup::app;
 
 #[tokio::test]
 async fn health_check_works() {
