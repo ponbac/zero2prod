@@ -1,5 +1,7 @@
 use axum::{extract::State, Form};
+use chrono::Utc;
 use reqwest::StatusCode;
+use uuid::Uuid;
 
 use crate::startup::AppState;
 
@@ -18,10 +20,10 @@ pub async fn subscribe(
         INSERT INTO subscriptions (id, email, name, subscribed_at)
         VALUES ($1, $2, $3, $4)
         "#,
-        uuid::Uuid::new_v4(),
+        Uuid::new_v4(),
         form_data.email,
         form_data.name,
-        chrono::Utc::now()
+        Utc::now()
     )
     .execute(app_state.db_pool.as_ref())
     .await
