@@ -1,4 +1,4 @@
-use axum::{extract::State, response::Html, Form};
+use axum::{extract::State, Form};
 use reqwest::StatusCode;
 
 use crate::startup::AppState;
