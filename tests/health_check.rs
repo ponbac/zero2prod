@@ -2,7 +2,7 @@ use sqlx::{Connection, PgConnection};
 use std::net::{SocketAddr, TcpListener};
 use zero2prod::configuration::get_configuration;
 
-use zero2prod::startup::app;
+use zero2prod::startup::app_router;
 
 #[tokio::test]
 async fn health_check_works() {
@@ -98,7 +98,7 @@ fn spawn_app() -> SocketAddr {
     tokio::spawn(async move {
         axum::Server::from_tcp(listener)
             .unwrap()
-            .serve(app().into_make_service())
+            .serve(app_router().into_make_service())
             .await
             .unwrap();
     });
