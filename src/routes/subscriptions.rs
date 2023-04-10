@@ -1,4 +1,5 @@
 use axum::{extract::State, response::Html, Form};
+use reqwest::StatusCode;
 
 use crate::startup::AppState;
 
@@ -11,8 +12,8 @@ pub struct FormData {
 pub async fn subscribe(
     State(app_state): State<AppState>,
     Form(form_data): Form<FormData>,
-) -> Html<String> {
-    sqlx::query!(
+) -> StatusCode {
+    match sqlx::query!(
         r#"
         INSERT INTO subscriptions (id, email, name, subscribed_at)
         VALUES ($1, $2, $3, $4)
@@ -24,12 +25,11 @@ pub async fn subscribe(
     )
     .execute(app_state.db_pool.as_ref())
     .await
-    .expect("Failed to execute query.");
-
-    let response = format!(
-        "<h1>Welcome, {}! We saved your email: {}</h1>",
-        form_data.name, form_data.email
-    );
-
-    Html(response)
+    {
+        Ok(_) => StatusCode::OK,
+        Err(e) => {
+            println!("Failed to execute query: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
 }
