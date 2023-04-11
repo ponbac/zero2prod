@@ -16,7 +16,7 @@ pub struct AppState {
 
 pub fn app_router(db_pool: PgPool) -> Router {
     // initialize the logger
-    tracing_subscriber::fmt::init();
+    // tracing_subscriber::fmt::init();
 
     Router::new()
         .route("/", get(|| async { "Hello, World!" }))
