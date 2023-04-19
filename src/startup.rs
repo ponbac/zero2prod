@@ -15,8 +15,10 @@ pub struct AppState {
 }
 
 pub fn app_router(db_pool: PgPool) -> Router {
-    // initialize the logger
-    // tracing_subscriber::fmt::init();
+    // initialize tracing if it hasn't been already
+    if tracing_subscriber::fmt::try_init().is_err() {
+        tracing::warn!("tracing is already initialized");
+    }
 
     Router::new()
         .route("/", get(|| async { "Hello, World!" }))
