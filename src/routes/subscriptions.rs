@@ -15,6 +15,12 @@ pub async fn subscribe(
     State(app_state): State<AppState>,
     Form(form_data): Form<FormData>,
 ) -> StatusCode {
+    tracing::info!(
+        "Adding new subscriber, {} <{}>",
+        form_data.name,
+        form_data.email
+    );
+
     match sqlx::query!(
         r#"
         INSERT INTO subscriptions (id, email, name, subscribed_at)
@@ -28,9 +34,12 @@ pub async fn subscribe(
     .execute(app_state.db_pool.as_ref())
     .await
     {
-        Ok(_) => StatusCode::OK,
+        Ok(_) => {
+            tracing::info!("Successfully added new subscriber");
+            StatusCode::OK
+        }
         Err(e) => {
-            println!("Failed to execute query: {}", e);
+            tracing::error!("Failed to execute query. Error: {:?}", e);
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }

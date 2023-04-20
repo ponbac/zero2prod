@@ -1,17 +1,34 @@
 use std::sync::Arc;
 
 use axum::{
+    http,
     routing::{get, post},
     Router,
 };
 use sqlx::PgPool;
 use tower_http::trace::TraceLayer;
+use uuid::Uuid;
 
 use crate::routes::{health_check, subscribe};
 
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: Arc<PgPool>,
+}
+
+#[derive(Clone)]
+pub struct RequestSpan;
+
+impl<B> tower_http::trace::MakeSpan<B> for RequestSpan {
+    fn make_span(&mut self, request: &http::Request<B>) -> tracing::Span {
+        tracing::error_span!(
+            "rq",
+            id = %Uuid::new_v4(),
+            method = %request.method(),
+            uri = %request.uri(),
+            version = ?request.version(),
+        )
+    }
 }
 
 pub fn app_router(db_pool: PgPool) -> Router {
@@ -28,5 +45,5 @@ pub fn app_router(db_pool: PgPool) -> Router {
             db_pool: Arc::new(db_pool),
         })
         // use with RUST_LOG=tower_http=debug to see the logs
-        .layer(TraceLayer::new_for_http())
+        .layer(TraceLayer::new_for_http().make_span_with(RequestSpan))
 }
