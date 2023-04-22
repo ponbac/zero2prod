@@ -12,6 +12,7 @@ async fn main() {
     let subscriber = get_subscriber(
         "zero2prod".into(),
         "info,tower_http=debug,axum=debug,sqlx=debug",
+        std::io::stdout,
     );
     init_subscriber(subscriber);
 
