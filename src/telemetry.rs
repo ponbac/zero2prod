@@ -15,7 +15,5 @@ pub fn get_subscriber(name: String, env_filter: &str) -> impl Subscriber + Send 
 }
 
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
-    if set_global_default(subscriber).is_err() {
-        tracing::warn!("tracing is already initialized");
-    }
+    set_global_default(subscriber).expect("Failed to set global default subscriber.");
 }

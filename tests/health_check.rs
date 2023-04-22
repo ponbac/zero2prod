@@ -1,9 +1,19 @@
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::{SocketAddr, TcpListener};
 use uuid::Uuid;
 use zero2prod::configuration::{get_configuration, DatabaseSettings};
+use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
 use zero2prod::startup::app_router;
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_subscriber(
+        "zero2prod".into(),
+        "debug,tower_http=debug,axum=debug,sqlx=debug",
+    );
+    init_subscriber(subscriber);
+});
 
 pub struct TestApp {
     pub address: String,
@@ -91,6 +101,8 @@ async fn subscribe_returns_a_422_when_data_is_missing() {
 // Launch our application in the background ~somehow~
 // More examples here: https://github.com/tokio-rs/axum/blob/main/examples/testing/src/main.rs
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
     let listener = TcpListener::bind("127.0.0.1:0".parse::<SocketAddr>().unwrap())
         .expect("Failed to bind random port");
     let addr = listener.local_addr().unwrap();

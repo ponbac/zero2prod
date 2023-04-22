@@ -9,10 +9,7 @@ use sqlx::PgPool;
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
-use crate::{
-    routes::{health_check, subscribe},
-    telemetry::{get_subscriber, init_subscriber},
-};
+use crate::routes::{health_check, subscribe};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -35,12 +32,6 @@ impl<B> tower_http::trace::MakeSpan<B> for RequestSpan {
 }
 
 pub fn app_router(db_pool: PgPool) -> Router {
-    let subscriber = get_subscriber(
-        "zero2prod".into(),
-        "info,tower_http=debug,axum=debug,sqlx=debug",
-    );
-    init_subscriber(subscriber);
-
     Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health_check", get(health_check))
