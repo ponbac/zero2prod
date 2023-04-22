@@ -7,6 +7,8 @@ use axum::{
 };
 use sqlx::PgPool;
 use tower_http::trace::TraceLayer;
+use tracing::subscriber::set_global_default;
+use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use uuid::Uuid;
 
@@ -35,13 +37,14 @@ impl<B> tower_http::trace::MakeSpan<B> for RequestSpan {
 pub fn app_router(db_pool: PgPool) -> Router {
     let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::from("info,tower_http=debug,axum=debug,sqlx=debug"));
+    let formatting_layer = BunyanFormattingLayer::new("zero2prod".into(), std::io::stdout);
 
-    // initialize tracing if it hasn't been already
-    if tracing_subscriber::fmt()
-        .with_env_filter(env_filter)
-        .try_init()
-        .is_err()
-    {
+    let subscriber = Registry::default()
+        .with(env_filter)
+        .with(JsonStorageLayer)
+        .with(formatting_layer);
+
+    if set_global_default(subscriber).is_err() {
         tracing::warn!("tracing is already initialized");
     }
 
