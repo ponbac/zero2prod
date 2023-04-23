@@ -5,17 +5,17 @@ use sqlx::PgPool;
 use zero2prod::{
     configuration::get_configuration,
     startup::app_router,
-    telemetry::{get_subscriber, init_subscriber},
+    telemetry::{self},
 };
 
 #[tokio::main]
 async fn main() {
-    let subscriber = get_subscriber(
+    let subscriber = telemetry::get_subscriber(
         "zero2prod".into(),
         "info,tower_http=debug,axum=debug,sqlx=debug",
         std::io::stdout,
     );
-    init_subscriber(subscriber);
+    telemetry::init_subscriber(subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");
     let connection_pool =
