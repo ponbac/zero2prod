@@ -23,6 +23,7 @@ tracing-subscriber = { version= "0.3.17", features = ["registry", "env-filter"] 
 tracing = "0.1.38"
 tracing-bunyan-formatter = "0.3.7"
 secrecy = { version = "0.8.0", features = ["serde"] }
+serde-aux = "4.2.0"
 
 [dependencies.sqlx]
 version = "0.6"

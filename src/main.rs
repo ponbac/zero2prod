@@ -22,29 +22,23 @@ async fn main() {
     let configuration = get_configuration().expect("Failed to read configuration.");
 
     // Setup database
-    let connection_string = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        configuration
-            .database
-            .connection_string()
-            .expose_secret()
-            .to_string()
-    });
     let connection_pool = PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(3))
-        .connect_lazy(&connection_string)
-        .expect("Failed to create Postgres connection pool.");
+        .connect_lazy_with(configuration.database.with_db());
 
     // Create host address
-    let port = std::env::var("PORT").unwrap_or_else(|_| configuration.application.port.to_string());
-    let socket_addr = format!("{}:{}", configuration.application.host, port)
-        .parse::<SocketAddr>()
-        .expect("Failed to parse address.");
+    let socket_addr = format!(
+        "{}:{}",
+        configuration.application.host, configuration.application.port
+    )
+    .parse::<SocketAddr>()
+    .expect("Failed to parse address.");
 
     // Start server
     tracing::info!(
         "Starting application on {}:{}",
         configuration.application.host,
-        port
+        configuration.application.port
     );
     axum::Server::bind(&socket_addr)
         .serve(app_router(connection_pool).into_make_service())
