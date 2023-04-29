@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use secrecy::ExposeSecret;
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use zero2prod::{
     configuration::get_configuration,
     startup::app_router,
@@ -18,13 +18,23 @@ async fn main() {
     telemetry::init_subscriber(subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");
-    let connection_pool =
-        PgPool::connect(configuration.database.connection_string().expose_secret())
-            .await
-            .expect("Failed to connect to Postgres.");
+    let connection_pool = PgPoolOptions::new()
+        .acquire_timeout(std::time::Duration::from_secs(3))
+        .connect_lazy(configuration.database.connection_string().expose_secret())
+        .expect("Failed to create Postgres connection pool.");
+    let socket_addr = format!(
+        "{}:{}",
+        configuration.application.host, configuration.application.port
+    )
+    .parse::<SocketAddr>()
+    .expect("Failed to parse address.");
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], configuration.application_port));
-    axum::Server::bind(&addr)
+    tracing::info!(
+        "Starting application on {}:{}",
+        configuration.application.host,
+        configuration.application.port
+    );
+    axum::Server::bind(&socket_addr)
         .serve(app_router(connection_pool).into_make_service())
         .await
         .unwrap();
