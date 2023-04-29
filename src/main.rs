@@ -32,7 +32,7 @@ async fn main() {
     tracing::info!(
         "Starting application on {}:{}",
         configuration.application.host,
-        configuration.application.port
+        std::env::var("PORT").unwrap_or_else(|_| configuration.application.port.to_string())
     );
     axum::Server::bind(&socket_addr)
         .serve(app_router(connection_pool).into_make_service())
