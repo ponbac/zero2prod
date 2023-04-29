@@ -22,17 +22,15 @@ async fn main() {
         .acquire_timeout(std::time::Duration::from_secs(3))
         .connect_lazy(configuration.database.connection_string().expose_secret())
         .expect("Failed to create Postgres connection pool.");
-    let socket_addr = format!(
-        "{}:{}",
-        configuration.application.host, configuration.application.port
-    )
-    .parse::<SocketAddr>()
-    .expect("Failed to parse address.");
+    let port = std::env::var("PORT").unwrap_or_else(|_| configuration.application.port.to_string());
+    let socket_addr = format!("{}:{}", configuration.application.host, port)
+        .parse::<SocketAddr>()
+        .expect("Failed to parse address.");
 
     tracing::info!(
         "Starting application on {}:{}",
         configuration.application.host,
-        std::env::var("PORT").unwrap_or_else(|_| configuration.application.port.to_string())
+        port
     );
     axum::Server::bind(&socket_addr)
         .serve(app_router(connection_pool).into_make_service())
