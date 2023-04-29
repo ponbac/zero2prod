@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 
-use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use zero2prod::{
     configuration::get_configuration,
