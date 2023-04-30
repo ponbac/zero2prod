@@ -12,7 +12,7 @@ async fn main() {
     // Init telemetry
     let subscriber = telemetry::get_subscriber(
         "zero2prod".into(),
-        "info,tower_http=debug,axum=debug,sqlx=debug",
+        "info,tower_http=debug,axum=debug,sqlx=debug,hyper=info",
         std::io::stdout,
     );
     telemetry::init_subscriber(subscriber);

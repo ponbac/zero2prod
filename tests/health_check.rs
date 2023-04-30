@@ -8,7 +8,7 @@ use zero2prod::telemetry::{get_subscriber, init_subscriber};
 use zero2prod::startup::app_router;
 
 static TRACING: Lazy<()> = Lazy::new(|| {
-    let default_filter_level = "debug,tower_http=debug,axum=debug,sqlx=debug";
+    let default_filter_level = "debug,tower_http=debug,axum=debug,sqlx=debug,hyper=info";
     let subscriber_name = "test".to_string();
 
     if std::env::var("TEST_LOG").is_ok() {
