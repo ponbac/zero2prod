@@ -5,7 +5,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
-    domain::{NewSubscriber, SubscriberName},
+    domain::{NewSubscriber, SubscriberEmail, SubscriberName},
     startup::AppState,
 };
 
@@ -28,7 +28,10 @@ pub async fn subscribe(
     Form(form_data): Form<FormData>,
 ) -> StatusCode {
     let new_subscriber = NewSubscriber {
-        email: form_data.email,
+        email: match SubscriberEmail::parse(form_data.email) {
+            Ok(email) => email,
+            Err(_) => return StatusCode::BAD_REQUEST,
+        },
         name: match SubscriberName::parse(form_data.name) {
             Ok(name) => name,
             Err(_) => return StatusCode::BAD_REQUEST,
@@ -55,7 +58,7 @@ pub async fn insert_subscriber(
         VALUES ($1, $2, $3, $4)
         "#,
         Uuid::new_v4(),
-        new_subscriber.email,
+        new_subscriber.email.as_ref(),
         new_subscriber.name.as_ref(),
         Utc::now()
     )
