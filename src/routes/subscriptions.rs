@@ -1,6 +1,5 @@
-use axum::{extract::State, Form};
+use axum::{extract::State, http::StatusCode, Form};
 use chrono::Utc;
-use reqwest::StatusCode;
 use sqlx::PgPool;
 use uuid::Uuid;
 
