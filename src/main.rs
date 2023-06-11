@@ -1,11 +1,7 @@
 use std::net::SocketAddr;
 
 use sqlx::postgres::PgPoolOptions;
-use zero2prod::{
-    configuration::get_configuration,
-    startup::app_router,
-    telemetry::{self},
-};
+use zero2prod::{configuration::get_configuration, startup::app_router, telemetry};
 
 #[tokio::main]
 async fn main() {
