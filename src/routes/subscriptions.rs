@@ -14,6 +14,17 @@ pub struct FormData {
     email: String,
 }
 
+impl TryFrom<FormData> for NewSubscriber {
+    type Error = String;
+
+    fn try_from(value: FormData) -> Result<Self, Self::Error> {
+        let name = SubscriberName::parse(value.name)?;
+        let email = SubscriberEmail::parse(value.email)?;
+
+        Ok(Self { name, email })
+    }
+}
+
 #[tracing::instrument(
     name = "Adding a new subscriber",
     skip(form_data, app_state),
@@ -26,15 +37,12 @@ pub async fn subscribe(
     State(app_state): State<AppState>,
     Form(form_data): Form<FormData>,
 ) -> StatusCode {
-    let new_subscriber = NewSubscriber {
-        email: match SubscriberEmail::parse(form_data.email) {
-            Ok(email) => email,
-            Err(_) => return StatusCode::BAD_REQUEST,
-        },
-        name: match SubscriberName::parse(form_data.name) {
-            Ok(name) => name,
-            Err(_) => return StatusCode::BAD_REQUEST,
-        },
+    let new_subscriber = match form_data.try_into() {
+        Ok(subscriber) => subscriber,
+        Err(e) => {
+            tracing::error!("Failed to parse subscriber details: {:?}", e);
+            return StatusCode::BAD_REQUEST;
+        }
     };
 
     match insert_subscriber(&app_state.db_pool, &new_subscriber).await {
