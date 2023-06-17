@@ -3,6 +3,7 @@ use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::{SocketAddr, TcpListener};
 use uuid::Uuid;
 use zero2prod::configuration::{get_configuration, DatabaseSettings};
+use zero2prod::email_client::EmailClient;
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
 use zero2prod::startup::app_router;
@@ -148,19 +149,28 @@ async fn spawn_app() -> TestApp {
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
 
+    // Setup email client
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url.clone(),
+        configuration
+            .email_client
+            .sender()
+            .expect("Invalid sender email address."),
+    );
+
     let pg_pool = connection_pool.clone();
     tokio::spawn(async move {
         axum::Server::from_tcp(listener)
             .unwrap()
-            .serve(app_router(pg_pool).into_make_service())
+            .serve(app_router(pg_pool, email_client).into_make_service())
             .await
             .unwrap();
     });
 
-    return TestApp {
+    TestApp {
         address: addr.to_string(),
         db_pool: connection_pool,
-    };
+    }
 }
 
 pub async fn configure_database(db_settings: &DatabaseSettings) -> PgPool {

@@ -1,7 +1,9 @@
 use std::net::SocketAddr;
 
 use sqlx::postgres::PgPoolOptions;
-use zero2prod::{configuration::get_configuration, startup::app_router, telemetry};
+use zero2prod::{
+    configuration::get_configuration, email_client::EmailClient, startup::app_router, telemetry,
+};
 
 #[tokio::main]
 async fn main() {
@@ -21,6 +23,15 @@ async fn main() {
         .acquire_timeout(std::time::Duration::from_secs(3))
         .connect_lazy_with(configuration.database.with_db());
 
+    // Setup email client
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url.clone(),
+        configuration
+            .email_client
+            .sender()
+            .expect("Invalid sender email address."),
+    );
+
     // Create host address
     let socket_addr = format!(
         "{}:{}",
@@ -36,7 +47,7 @@ async fn main() {
         configuration.application.port
     );
     axum::Server::bind(&socket_addr)
-        .serve(app_router(connection_pool).into_make_service())
+        .serve(app_router(connection_pool, email_client).into_make_service())
         .await
         .unwrap();
 }
