@@ -152,6 +152,7 @@ async fn spawn_app() -> TestApp {
     // Setup email client
     let email_client = EmailClient::new(
         configuration.email_client.base_url.clone(),
+        configuration.email_client.authorization_token.clone(),
         configuration
             .email_client
             .sender()
